@@ -1,0 +1,11 @@
+# dirs
+bin
+build
+gradle
+
+# files
+velocity-3.5.0-SNAPSHOT-605.jar
+gradle.properties
+gradlew
+gradlew.bat
+settings.gradle.kts

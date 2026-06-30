@@ -1,0 +1,29 @@
+# Тексты сообщений для Discord-канала.
+# Плейсхолдеры: %player%, %server%, %from%, %to%, %message%, %command%, %count%
+# Эмодзи и markdown поддерживаются.
+#
+# messages-version — НЕ менять. Должна совпадать с версией плагина.
+# Если не совпадает, файл будет переименован в messages.old.<version>.yml и создан новый.
+messages-version: "${version}"
+
+proxy:
+  start: "🟢 **Прокси запущен**"
+  stop: "🔴 **Прокси выключается**"
+
+player:
+  join: "🟢 **%player%** зашёл на сервер `%server%`"
+  leave: "🔴 **%player%** вышел"
+  switch: "↔️ **%player%**: `%from%` → `%to%`"
+  chat: "**%player%**: %message%"
+  command: "📝 `%player%` выполнил /%command%"
+
+discord:
+  # Формат сообщения из Discord в MC-чат (рендерится через MiniMessage).
+  chat:
+    mc: "[Discord] %player%: %message%"
+
+command:
+  list:
+    header: "**Доступно команд прокси: %count%**"
+    empty: "Команд не зарегистрировано"
+    wrong-channel: "Эта команда доступна только в console-канале"

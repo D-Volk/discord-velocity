@@ -1,0 +1,89 @@
+# Discord-Velocity configuration
+# config-version — НЕ менять. Должна совпадать с версией плагина.
+# Если не совпадает, файл будет автоматически переименован в config.old.<version>.yml
+# и создан новый со свежими ключами.
+config-version: "${version}"
+
+# Получите токен бота: https://discord.com/developers/applications
+# Включите в Bot settings: MESSAGE CONTENT INTENT и SERVER MEMBERS INTENT
+# В Discord включите Режим разработчика, ПКМ по каналу → "Копировать ID"
+discord:
+  token: ""
+  guild-id: ""
+  chat-channel-id: ""
+  console-channel-id: ""
+
+chat:
+  # Пересылать чат игроков в Discord-канал
+  mc-to-discord: true
+  # Пересылать сообщения из Discord-чата в MC
+  discord-to-mc: true
+
+events:
+  # Логировать команды игроков в чат-канал
+  command-log: true
+
+console:
+  # Выполнять текст из console-канала как команды прокси
+  bidirectional: true
+  # Период склейки логов перед отправкой (мс). Меньше = быстрее, но риск rate-limit
+  flush-interval-ms: 1500
+  # Не пересылать в Discord логи от этих логгеров (по префиксу)
+  exclude-loggers:
+    - net.dv8tion
+    - okhttp3
+    - io.netty
+    - com.sedmelluq
+
+presence:
+  # Режим: single | rotate | schedule
+  #   single   — один статус (presence.format + presence.type)
+  #   rotate   — цикл по presence.list каждые rotation-interval-sec секунд (если нужно несколько статусов)
+  #   schedule — переключение по времени суток (каждый item с at: "HH:mm")
+  mode: single
+  # Тип активности: PLAYING | LISTENING | WATCHING | STREAMING | COMPETING | CUSTOM
+  type: PLAYING
+  # Шаблон-текст single-режима. Плейсхолдеры: %online% (игроков), %max% (лимит)
+  format: "%online%/%max% online"
+
+  # Интервал ротации в режиме rotate (секунды). Минимум 5.
+  rotation-interval-sec: 30
+
+  # Онлайн-статус бота. Возможные значения: ONLINE | IDLE | DND | INVISIBLE
+  status:
+    # Режим: auto | manual
+    #   auto   — если игроков > 0 → presence.status.active, иначе → presence.status.empty
+    #   manual — всегда presence.status.manual
+    # Если у конкретного item в presence.list задано поле status —
+    # оно перекрывает выбор для этого item.
+    mode: auto
+    manual: IDLE
+    active: ONLINE
+    empty: IDLE
+
+  # Список для rotate / schedule.
+  # Поля item: type (PLAYING | LISTENING | WATCHING | STREAMING | COMPETING | CUSTOM)
+  #            text (обяз.)
+  #            url (для STREAMING)
+  #            at (для schedule, "HH:mm")
+  #            status (необязательно — перекрывает presence.status.* для этого item)
+  # Примеры (раскомментируй):
+  #list:
+  #  - type: PLAYING
+  #    text: "%online%/%max% игроков"
+  #  - type: LISTENING
+  #    text: "тех. работы"
+  #    status: DND
+  #  - type: WATCHING
+  #    text: "AFK"
+  #    status: IDLE
+  #  - type: STREAMING
+  #    text: "Live!"
+  #    url: "https://twitch.tv/example"
+  #  - at: "08:00"
+  #    type: PLAYING
+  #    text: "Доброе утро"
+  #  - at: "20:00"
+  #    type: STREAMING
+  #    text: "Вечерний стрим"
+  #    url: "https://twitch.tv/example"
