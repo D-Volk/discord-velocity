@@ -185,3 +185,7 @@ JDA и SnakeYAML шейдятся в `ru.dvolk.discordvelocity.shaded.*`, что
 ## Комментарий
 
 Все настройки и в целом код проверен на [Velocity 3.5.0 #605](https://fill-data.papermc.io/v1/objects/0ec616020166465dacca3b790d3db2b246f8f7c13b3aaacaae60c825744a66e0/velocity-3.5.0-SNAPSHOT-605.jar), [Paper 1.21.11 #132](https://fill-data.papermc.io/v1/objects/5ffef465eeeb5f2a3c23a24419d97c51afd7dbb4923ff42df9a3f58bba1ccfba/paper-1.21.11-132.jar) и [LuckPerms v. 5.5.57](https://download.luckperms.net/1645/bukkit/loader/LuckPerms-Bukkit-5.5.57.jar)
+
+## Лицензия
+
+Проект распространяется под лицензией [MIT](LICENSE).
