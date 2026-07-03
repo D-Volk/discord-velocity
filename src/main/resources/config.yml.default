@@ -35,6 +35,26 @@ console:
     - io.netty
     - com.sedmelluq
 
+# Интеграция с плагином Statify (Paper) для команды /profile в Discord.
+# Плагин читает те же таблицы, что и Statify (statify_players, statify_daily).
+# enabled: false — команда /profile не будет зарегистрирована.
+statify:
+  enabled: false
+  # Тип БД: mysql | mariadb (используется драйвер MariaDB, совместимый с MySQL).
+  type: mariadb
+  host: localhost
+  port: 3306
+  database: statify
+  username: statify
+  password: change_me
+  use-ssl: false
+  # Список серверов, для которых отображается статистика в /profile.
+  # Значения соответствуют полю server-name в config.yml плагина Statify.
+  # Порядок сохраняется в выводе команды.
+  servers:
+    - lobby
+    - survival
+
 presence:
   # Режим: single | rotate | schedule
   #   single   — один статус (presence.format + presence.type)

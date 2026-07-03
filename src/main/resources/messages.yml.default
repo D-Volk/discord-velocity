@@ -27,3 +27,30 @@ command:
     header: "**Доступно команд прокси: %count%**"
     empty: "Команд не зарегистрировано"
     wrong-channel: "Эта команда доступна только в console-канале"
+  profile:
+    # Заголовок embed. Плейсхолдер: %player%
+    title: "Время игрока %player%"
+    # Подпись под заголовком. Плейсхолдеры: %period%
+    period: "Период: %period%"
+    period-all: "всё время"
+    period-day: "за сегодня"
+    period-week: "за 7 дней"
+    period-month: "за 30 дней"
+    period-year: "за год"
+    period-custom: "с %from% по %to%"
+    # Формат одной строки-сервера. Плейсхолдеры: %server%, %time%
+    server-line: "`%server%` — %time%"
+    # Строка «всего», добавляется последней. Плейсхолдер: %time%
+    total-line: "**Всего: %time%**"
+    # Когда игрок вообще не найден в БД
+    unknown-player: "Игрок `%player%` не найден в статистике"
+    # Когда Statify-интеграция выключена в config.yml
+    disabled: "Команда /time выключена (см. `statify.enabled` в config.yml)"
+    # Когда БД недоступна
+    db-error: "Не удалось получить данные из БД: %error%"
+    # Форматы времени. %d %h %m %s подставляются как числа.
+    time:
+      format-full: "%days%д %hours%ч %minutes%м"
+      format-hm: "%hours%ч %minutes%м"
+      format-m: "%minutes%м"
+      zero: "нет"

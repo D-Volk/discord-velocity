@@ -46,6 +46,7 @@ public final class DiscordBot {
     private volatile PresenceEntry currentEntry;
     private volatile DiscordListener listener;
     private volatile ScheduledFuture<?> presenceTask;
+    private final StatifyRepository statify;
     private int rotateIndex = 0;
 
     public DiscordBot(Config config, Messages messages, ProxyServer proxy, Logger logger) {
@@ -53,6 +54,7 @@ public final class DiscordBot {
         this.messages = messages;
         this.proxy = proxy;
         this.logger = logger;
+        this.statify = new StatifyRepository(config, logger);
     }
 
     public void start() throws InterruptedException {
@@ -92,9 +94,28 @@ public final class DiscordBot {
     }
 
     private void registerSlashCommands() {
-        var commandsList = new net.dv8tion.jda.api.interactions.commands.build.SlashCommandData[]{
-                Commands.slash("commands", "List all available proxy console commands")
-        };
+        List<net.dv8tion.jda.api.interactions.commands.build.SlashCommandData> list = new ArrayList<>();
+        list.add(Commands.slash("commands", "List all available proxy console commands"));
+        if (config.statifyEnabled()) {
+            var profile = Commands.slash("time", "Показать наигранное время игрока")
+                    .addOption(net.dv8tion.jda.api.interactions.commands.OptionType.STRING,
+                            "player", "Ник игрока", true)
+                    .addOptions(new net.dv8tion.jda.api.interactions.commands.build.OptionData(
+                            net.dv8tion.jda.api.interactions.commands.OptionType.STRING,
+                            "period", "Период (по умолчанию — всё время)", false)
+                            .addChoice("Всё время", "all")
+                            .addChoice("Сегодня", "day")
+                            .addChoice("7 дней", "week")
+                            .addChoice("30 дней", "month")
+                            .addChoice("Год", "year")
+                            .addChoice("Свой диапазон (from/to)", "custom"))
+                    .addOption(net.dv8tion.jda.api.interactions.commands.OptionType.STRING,
+                            "from", "Начало диапазона (DD.MM.YYYY, для period=custom)", false)
+                    .addOption(net.dv8tion.jda.api.interactions.commands.OptionType.STRING,
+                            "to", "Конец диапазона (DD.MM.YYYY, для period=custom)", false);
+            list.add(profile);
+        }
+        var commandsList = list.toArray(new net.dv8tion.jda.api.interactions.commands.build.SlashCommandData[0]);
         if (!config.guildId().isBlank()) {
             Guild guild = jda.getGuildById(config.guildId());
             if (guild != null) {
@@ -139,6 +160,7 @@ public final class DiscordBot {
     public TextChannel chatChannel() { return chatChannel; }
     public TextChannel consoleChannel() { return consoleChannel; }
     public PresenceEntry currentEntry() { return currentEntry; }
+    public StatifyRepository statify() { return statify; }
 
     /**
      * Reload config and messages without restarting the bot.
@@ -157,10 +179,13 @@ public final class DiscordBot {
         if (config.consoleFlushIntervalMs() != newConfig.consoleFlushIntervalMs())
             warnings.add("console.flush-interval-ms changed — requires proxy restart");
 
+        boolean statifyToggled = config.statifyEnabled() != newConfig.statifyEnabled();
         this.config = newConfig;
         this.messages = newMessages;
+        statify.reload(newConfig);
         if (listener != null) listener.reload(newConfig, newMessages);
         startPresenceScheduler();
+        if (statifyToggled) registerSlashCommands();
         return warnings;
     }
 

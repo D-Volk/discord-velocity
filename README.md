@@ -1,4 +1,4 @@
-# Discord-Velocity
+# Discord-Velocity integration [FUNCRAFT](https://fun-craft.ru)
 
 Плагин для [Velocity](https://papermc.io/software/velocity), связывающий прокси с Discord-сервером: трансляция событий и чата, стрим консоли, выполнение команд через Discord.
 
@@ -62,11 +62,20 @@ gradle wrapper --gradle-version 8.10
 
 ### Discord (slash-commands)
 
-| Команда      | Где работает      | Что делает                                       |
-| ------------ | ----------------- | ------------------------------------------------ |
-| `/commands`  | console-канал     | Список всех команд прокси (ephemeral-ответ).     |
+| Команда      | Где работает      | Что делает                                                                 |
+| ------------ | ----------------- | -------------------------------------------------------------------------- |
+| `/commands`  | console-канал     | Список всех команд прокси (ephemeral-ответ).                               |
+| `/time`      | любой канал       | Наигранное время игрока по серверам. Требует `statify.enabled: true`.      |
 
 В console-канале любое обычное сообщение выполняется как команда от консоли прокси. Префикс `/` опционален.
+
+Параметры `/time`:
+
+- `player` — ник игрока (обязательно, регистр не важен).
+- `period` — период: `all` (по умолчанию), `day`, `week` (7 дней), `month` (30 дней), `year`, `custom`.
+- `from`, `to` — начало и конец диапазона для `period=custom`, формат `DD.MM.YYYY` (или `DD.MM.YY`).
+
+Плагин читает те же таблицы, что и Statify (`statify_players`, `statify_daily`). Ответ приходит embed'ом с разбивкой по серверам из `statify.servers` и строкой `Всего`.
 
 ## Конфигурация
 
@@ -95,6 +104,19 @@ console:
     - net.dv8tion
     - okhttp3
     - io.netty
+
+statify:
+  enabled: false                   # true — включить slash-команду /profile
+  type: mariadb                    # mysql | mariadb
+  host: localhost
+  port: 3306
+  database: statify
+  username: statify
+  password: change_me
+  use-ssl: false
+  servers:                         # список server-name из config.yml плагина Statify
+    - lobby
+    - survival
 
 presence:
   mode: single                     # single | rotate | schedule
@@ -184,7 +206,8 @@ JDA и SnakeYAML шейдятся в `ru.dvolk.discordvelocity.shaded.*`, что
 
 ## Комментарий
 
-Все настройки и в целом код проверен на [Velocity 3.5.0 #605](https://fill-data.papermc.io/v1/objects/0ec616020166465dacca3b790d3db2b246f8f7c13b3aaacaae60c825744a66e0/velocity-3.5.0-SNAPSHOT-605.jar), [Paper 1.21.11 #132](https://fill-data.papermc.io/v1/objects/5ffef465eeeb5f2a3c23a24419d97c51afd7dbb4923ff42df9a3f58bba1ccfba/paper-1.21.11-132.jar) и [LuckPerms v. 5.5.57](https://download.luckperms.net/1645/bukkit/loader/LuckPerms-Bukkit-5.5.57.jar)
+Все настройки и в целом код проверен на [Velocity 3.5.0 #605](https://fill-data.papermc.io/v1/objects/0ec616020166465dacca3b790d3db2b246f8f7c13b3aaacaae60c825744a66e0/velocity-3.5.0-SNAPSHOT-605.jar), [Paper 1.21.11 #132](https://fill-data.papermc.io/v1/objects/5ffef465eeeb5f2a3c23a24419d97c51afd7dbb4923ff42df9a3f58bba1ccfba/paper-1.21.11-132.jar) и [LuckPerms v. 5.5.57](https://download.luckperms.net/1645/bukkit/loader/LuckPerms-Bukkit-5.5.57.jar).
+Интеграция `/time` рассчитана на данные плагина `statify 1.0.0`, разработанный отдельно.
 
 ## Лицензия
 

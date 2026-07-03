@@ -46,6 +46,15 @@ public final class Config {
     private final OnlineStatus statusManual;
     private final OnlineStatus statusActive;
     private final OnlineStatus statusEmpty;
+    private final boolean statifyEnabled;
+    private final String statifyType;
+    private final String statifyHost;
+    private final int statifyPort;
+    private final String statifyDatabase;
+    private final String statifyUsername;
+    private final String statifyPassword;
+    private final boolean statifyUseSsl;
+    private final List<String> statifyServers;
 
     private Config(Map<String, Object> root, Logger logger) {
         this.token = Yml.getString(root, "discord.token", "").trim();
@@ -67,6 +76,15 @@ public final class Config {
         this.statusManual = parseStatus(Yml.getString(root, "presence.status.manual", "ONLINE"), OnlineStatus.ONLINE);
         this.statusActive = parseStatus(Yml.getString(root, "presence.status.active", "ONLINE"), OnlineStatus.ONLINE);
         this.statusEmpty = parseStatus(Yml.getString(root, "presence.status.empty", "IDLE"), OnlineStatus.IDLE);
+        this.statifyEnabled = Yml.getBool(root, "statify.enabled", false);
+        this.statifyType = Yml.getString(root, "statify.type", "mariadb").trim().toLowerCase();
+        this.statifyHost = Yml.getString(root, "statify.host", "localhost").trim();
+        this.statifyPort = Yml.getInt(root, "statify.port", 3306);
+        this.statifyDatabase = Yml.getString(root, "statify.database", "statify").trim();
+        this.statifyUsername = Yml.getString(root, "statify.username", "statify");
+        this.statifyPassword = Yml.getString(root, "statify.password", "");
+        this.statifyUseSsl = Yml.getBool(root, "statify.use-ssl", false);
+        this.statifyServers = Yml.getStringList(root, "statify.servers");
     }
 
     private static StatusMode parseStatusMode(String s) {
@@ -172,6 +190,15 @@ public final class Config {
     public OnlineStatus statusManual() { return statusManual; }
     public OnlineStatus statusActive() { return statusActive; }
     public OnlineStatus statusEmpty() { return statusEmpty; }
+    public boolean statifyEnabled() { return statifyEnabled; }
+    public String statifyType() { return statifyType; }
+    public String statifyHost() { return statifyHost; }
+    public int statifyPort() { return statifyPort; }
+    public String statifyDatabase() { return statifyDatabase; }
+    public String statifyUsername() { return statifyUsername; }
+    public String statifyPassword() { return statifyPassword; }
+    public boolean statifyUseSsl() { return statifyUseSsl; }
+    public List<String> statifyServers() { return statifyServers; }
 
     static final class Yml {
 
