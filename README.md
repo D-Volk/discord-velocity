@@ -1,5 +1,172 @@
 # Discord-Velocity
 
+A plugin for [Velocity](https://papermc.io/software/velocity) that bridges the proxy with a Discord server: relay of player events and chat, console log streaming, and command execution from Discord.
+
+## Features
+
+- **Chat channel** (bidirectional): player chat is forwarded to Discord, and messages posted in Discord reach all players on the proxy.
+- **Player events**: join / leave, switching between backend servers, executed commands (optional).
+- **Proxy state messages**: startup and shutdown.
+- **Console channel**: streams all Velocity logs (batched every ~1.5 s to avoid Discord rate limits). Messages sent to this channel are executed as console commands with a ✅ / ❌ reaction.
+- **ANSI escape stripping** from logs before sending.
+- **Presence bot**: a single status, list rotation with an interval, or schedule-based switching (`HH:mm`). Activity types: `PLAYING / LISTENING / WATCHING / STREAMING / COMPETING / CUSTOM`. Supports `%online%` / `%max%` in the template.
+- **Online status** (`ONLINE / IDLE / DND / INVISIBLE`): automatic based on player count or manual; each rotation entry may define its own status.
+- **Slash command `/commands`** in the console channel — lists all proxy commands.
+- **`/discord-velocity` (`/dv`)** in Velocity: `info` and `reload` without restarting the proxy.
+- **Versioned YAML configs**: when the file version does not match the plugin version, the old file is renamed to `*.old.<version>.yml` and a fresh one is created next to it.
+
+## Requirements
+
+- Java **21+**.
+- Gradle **8.10**.
+- Velocity **3.5.0+**.
+- A Discord application → Bot. Enable in Bot settings:
+  - **MESSAGE CONTENT INTENT**
+  - **SERVER MEMBERS INTENT**
+- Enable **Developer Mode** in Discord (Settings → Advanced) so you can copy channel and guild IDs.
+
+## Installation
+
+1. Download or build `discord-velocity-<version>.jar`.
+2. Put it into the Velocity `plugins/` directory.
+3. Start the proxy — a `plugins/discord-velocity/` directory with `config.yml` and `messages.yml` will be created.
+4. Open `config.yml` and fill in:
+   - `discord.token` — bot token;
+   - `discord.guild-id` — guild ID (recommended; otherwise slash commands are registered globally and can take up to 1 h to appear);
+   - `discord.chat-channel-id`, `discord.console-channel-id` — channel IDs;
+5. Restart the proxy.
+
+## Build from source
+
+```bash
+gradle wrapper --gradle-version 8.10
+./gradlew clean shadowJar
+```
+
+Result: `build/libs/discord-velocity-<version>.jar` (fat-jar with JDA, SnakeYAML, MariaDB JDBC and others shaded).
+
+## Commands
+
+### Velocity
+
+| Command                       | What it does                                                  |
+| ----------------------------- | ------------------------------------------------------------- |
+| `/discord-velocity info`      | Plugin version, bot status, channels, current presence.       |
+| `/discord-velocity reload`    | Reload `config.yml` and `messages.yml`.                       |
+| `/dv ...`                     | Alias.                                                        |
+
+- From the proxy console and the Discord console channel — no permission required.
+- From the game (backend server) — permission **`discordvelocity.admin`** (via LuckPerms: `lp user <name> permission set discordvelocity.admin true`).
+- `reload` applies new values from `config.yml` (except `discord.*` and `console.flush-interval-ms`, which emit a `[warn]`) and `messages.yml`.
+
+### Discord (slash commands)
+
+| Command      | Where it works    | What it does                                                               |
+| ------------ | ----------------- | -------------------------------------------------------------------------- |
+| `/commands`  | console channel   | Lists all proxy commands (ephemeral reply).                                |
+
+In the console channel, any plain message is executed as a proxy console command. The `/` prefix is optional.
+
+## Configuration
+
+### `config.yml` (main sections)
+
+```yaml
+config-version: "0.1.0"            # substituted at build time, do not edit
+
+discord:
+  token: ""
+  guild-id: ""
+  chat-channel-id: ""
+  console-channel-id: ""
+
+chat:
+  mc-to-discord: true              # player chat → Discord
+  discord-to-mc: true              # Discord → MC
+
+events:
+  command-log: true                # log player commands
+
+console:
+  bidirectional: true              # execute messages from the console channel
+  flush-interval-ms: 1500          # log-batching interval
+  exclude-loggers:                 # skip these loggers (by prefix)
+    - net.dv8tion
+    - okhttp3
+    - io.netty
+
+presence:
+  mode: single                     # single | rotate | schedule
+  type: PLAYING                    # PLAYING | LISTENING | WATCHING | STREAMING | COMPETING | CUSTOM
+  format: "%online%/%max% online"
+  rotation-interval-sec: 30
+
+  status:
+    mode: auto                     # auto | manual
+    manual: ONLINE                 # ONLINE | IDLE | DND | INVISIBLE
+    active: ONLINE                 # auto mode: when players > 0
+    empty: IDLE                    # auto mode: when players == 0
+
+  list:                            # for rotate / schedule
+    - type: PLAYING
+      text: "%online%/%max% players"
+    - type: LISTENING
+      text: "maintenance"
+      status: DND                  # overrides presence.status for this entry
+    - at: "20:00"                  # for schedule
+      type: STREAMING
+      text: "Evening stream"
+      url: "https://twitch.tv/example"
+```
+
+### `messages.yml`
+
+Text of every message the plugin sends to Discord and MC. Placeholders: `%player%`, `%server%`, `%from%`, `%to%`, `%message%`, `%command%`, `%count%`.
+
+If a key is missing from the user file, the plugin falls back to the bundled default — no message can be lost.
+
+## Config versioning
+
+`config-version` and `messages-version` are substituted at build time (`project.version`) and must match the running plugin version.
+
+On startup:
+1. If the file is missing — it is created from the default.
+2. If an old `config.properties` or `messages.properties` is found — it is renamed to `*.old.legacy.yml` (the initial concept used `.properties`, later replaced by `.yml`).
+3. If the file version does not match the plugin version — the file is renamed to `<name>.old.<old-version>.yml` and a fresh one is created from defaults. Name collisions are resolved by appending `.1`, `.2`…
+
+## Data layout
+
+```
+plugins/
+├──discord-velocity-0.1.0.jar
+├──discord-velocity/
+├──── config.yml
+├──── messages.yml
+├──── config.old.0.0.7.yml         # backup of the previous version
+├──── messages.old.0.0.7.yml       # backup of the previous version
+└──── config.old.legacy.yml        # backup of legacy .properties (no longer used)
+```
+
+## Tech
+
+- [JDA 5](https://github.com/discord-jda/JDA) — Discord client.
+- [SnakeYAML](https://bitbucket.org/snakeyaml/snakeyaml) — YAML parser.
+- [MariaDB Java Client](https://mariadb.com/kb/en/mariadb-connector-j/) — JDBC driver for `/time`.
+- Velocity API + Adventure (MiniMessage for Discord → MC rendering).
+- Log4j2 — custom appender for console streaming.
+
+JDA, SnakeYAML and the MariaDB driver are shaded into `ru.dvolk.discordvelocity.shaded.*` to avoid clashes with other plugins.
+
+## Notes
+
+All settings and code have been tested against [Velocity 3.5.0 #605](https://fill-data.papermc.io/v1/objects/0ec616020166465dacca3b790d3db2b246f8f7c13b3aaacaae60c825744a66e0/velocity-3.5.0-SNAPSHOT-605.jar), [Paper 1.21.11 #132](https://fill-data.papermc.io/v1/objects/5ffef465eeeb5f2a3c23a24419d97c51afd7dbb4923ff42df9a3f58bba1ccfba/paper-1.21.11-132.jar) and [LuckPerms v. 5.5.57](https://download.luckperms.net/1645/bukkit/loader/LuckPerms-Bukkit-5.5.57.jar).
+
+## License
+
+Released under the [MIT](LICENSE) license.
+
+---
+
 Плагин для [Velocity](https://papermc.io/software/velocity), связывающий прокси с Discord-сервером: трансляция событий и чата, стрим консоли, выполнение команд через Discord.
 
 ## Возможности
