@@ -18,6 +18,7 @@ repositories {
 dependencies {
     compileOnly("com.velocitypowered:velocity-api:3.5.0-SNAPSHOT")
     annotationProcessor("com.velocitypowered:velocity-api:3.5.0-SNAPSHOT")
+    compileOnly("net.luckperms:api:5.4")
 
     // log4j-core is bundled with Velocity at runtime — compileOnly only.
     compileOnly("org.apache.logging.log4j:log4j-core:2.22.1")

@@ -92,9 +92,39 @@ public final class DiscordBot {
     }
 
     private void registerSlashCommands() {
+<<<<<<< Updated upstream
         var commandsList = new net.dv8tion.jda.api.interactions.commands.build.SlashCommandData[]{
                 Commands.slash("commands", "List all available proxy console commands")
         };
+=======
+        List<net.dv8tion.jda.api.interactions.commands.build.SlashCommandData> list = new ArrayList<>();
+        list.add(Commands.slash("commands", "List all available proxy console commands"));
+        list.add(Commands.slash("players", "Список онлайн-игроков на серверах прокси")
+                .addOptions(new net.dv8tion.jda.api.interactions.commands.build.OptionData(
+                        net.dv8tion.jda.api.interactions.commands.OptionType.STRING,
+                        "server", "Конкретный сервер (по умолчанию — все)", false)
+                        .setAutoComplete(true)));
+        if (config.statifyEnabled()) {
+            var profile = Commands.slash("time", "Показать наигранное время игрока")
+                    .addOption(net.dv8tion.jda.api.interactions.commands.OptionType.STRING,
+                            "player", "Ник игрока", true)
+                    .addOptions(new net.dv8tion.jda.api.interactions.commands.build.OptionData(
+                            net.dv8tion.jda.api.interactions.commands.OptionType.STRING,
+                            "period", "Период (по умолчанию — всё время)", false)
+                            .addChoice("Всё время", "all")
+                            .addChoice("Сегодня", "day")
+                            .addChoice("7 дней", "week")
+                            .addChoice("30 дней", "month")
+                            .addChoice("Год", "year")
+                            .addChoice("Свой диапазон (from/to)", "custom"))
+                    .addOption(net.dv8tion.jda.api.interactions.commands.OptionType.STRING,
+                            "from", "Начало диапазона (DD.MM.YYYY, для period=custom)", false)
+                    .addOption(net.dv8tion.jda.api.interactions.commands.OptionType.STRING,
+                            "to", "Конец диапазона (DD.MM.YYYY, для period=custom)", false);
+            list.add(profile);
+        }
+        var commandsList = list.toArray(new net.dv8tion.jda.api.interactions.commands.build.SlashCommandData[0]);
+>>>>>>> Stashed changes
         if (!config.guildId().isBlank()) {
             Guild guild = jda.getGuildById(config.guildId());
             if (guild != null) {
