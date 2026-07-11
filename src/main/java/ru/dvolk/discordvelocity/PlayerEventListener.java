@@ -6,6 +6,9 @@ import com.velocitypowered.api.event.connection.DisconnectEvent;
 import com.velocitypowered.api.event.connection.PostLoginEvent;
 import com.velocitypowered.api.event.player.PlayerChatEvent;
 import com.velocitypowered.api.event.player.ServerConnectedEvent;
+import com.velocitypowered.api.proxy.Player;
+import net.luckperms.api.LuckPermsProvider;
+import net.luckperms.api.query.QueryOptions;
 
 import java.awt.Color;
 
@@ -60,9 +63,39 @@ public final class PlayerEventListener {
     @Subscribe
     public void onChat(PlayerChatEvent event) {
         if (!config.chatMcToDiscord()) return;
+        Player player = event.getPlayer();
+        String server = player.getCurrentServer()
+                .map(s -> s.getServerInfo().getName()).orElse("?");
+        String prefix = stripFormatting(fetchMeta(player, true));
+        String suffix = stripFormatting(fetchMeta(player, false));
+        String displayName = prefix.isEmpty() && suffix.isEmpty()
+                ? player.getUsername()
+                : prefix + player.getUsername() + suffix;
         bot.sendChatPlain(messages.format("player.chat",
-                "player", event.getPlayer().getUsername(),
+                "player", player.getUsername(),
+                "displayname", displayName,
+                "server", server,
                 "message", event.getMessage()));
+    }
+
+    private static String fetchMeta(Player player, boolean prefix) {
+        try {
+            var lp = LuckPermsProvider.get();
+            var user = lp.getUserManager().getUser(player.getUniqueId());
+            if (user == null) return "";
+            var meta = user.getCachedData().getMetaData(QueryOptions.nonContextual());
+            String value = prefix ? meta.getPrefix() : meta.getSuffix();
+            return value != null ? value : "";
+        } catch (Exception e) {
+            return "";
+        }
+    }
+
+    private static String stripFormatting(String s) {
+        if (s == null || s.isEmpty()) return "";
+        s = s.replaceAll("<[^>]+>", "");
+        s = s.replaceAll("[§&][0-9a-fk-orA-FK-OR]", "");
+        return s;
     }
 
     @Subscribe

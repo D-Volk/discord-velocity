@@ -1,11 +1,14 @@
 package ru.dvolk.discordvelocity;
 
 import com.velocitypowered.api.proxy.ProxyServer;
+import com.velocitypowered.api.proxy.server.RegisteredServer;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
+import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
+import net.dv8tion.jda.api.interactions.commands.Command;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
@@ -17,6 +20,8 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
 import java.time.temporal.ChronoField;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -76,12 +81,26 @@ public final class DiscordListener extends ListenerAdapter {
                 ? event.getMember().getEffectiveName()
                 : event.getAuthor().getName();
 
+        String roleTag = buildRoleTag(event);
+
         String raw = messages.format("discord.chat.mc",
                 "player", escapeMini(name),
+                "role", roleTag,
                 "message", escapeMini(content));
         Component msg = MINI.deserialize(raw);
 
         proxy.getAllPlayers().forEach(p -> p.sendMessage(msg));
+    }
+
+    private static String buildRoleTag(MessageReceivedEvent event) {
+        if (event.getMember() == null) return "Discord";
+        return event.getMember().getRoles().stream().findFirst().map(role -> {
+            String name = escapeMini(role.getName());
+            java.awt.Color color = role.getColor();
+            if (color == null) return name;
+            String hex = String.format("#%02X%02X%02X", color.getRed(), color.getGreen(), color.getBlue());
+            return "<color:" + hex + ">" + name + "</color>";
+        }).orElse("Discord");
     }
 
     private void handleConsole(MessageReceivedEvent event, String content) {
@@ -110,6 +129,7 @@ public final class DiscordListener extends ListenerAdapter {
         switch (event.getName()) {
             case "commands" -> handleCommands(event);
             case "time" -> handleProfile(event);
+            case "players" -> handlePlayers(event);
             default -> {}
         }
     }
@@ -275,5 +295,57 @@ public final class DiscordListener extends ListenerAdapter {
         }
         return messages.format("command.profile.time.format-m",
                 "minutes", String.valueOf(minutes));
+    }
+
+    @Override
+    public void onCommandAutoCompleteInteraction(@NotNull CommandAutoCompleteInteractionEvent event) {
+        if (!event.getName().equals("players") || !event.getFocusedOption().getName().equals("server")) return;
+        String typed = event.getFocusedOption().getValue().toLowerCase();
+        List<Command.Choice> choices = proxy.getAllServers().stream()
+                .map(s -> s.getServerInfo().getName())
+                .filter(n -> n.toLowerCase().startsWith(typed))
+                .limit(25)
+                .map(n -> new Command.Choice(n, n))
+                .collect(Collectors.toList());
+        event.replyChoices(choices).queue();
+    }
+
+    private void handlePlayers(SlashCommandInteractionEvent event) {
+        String serverFilter = event.getOption("server", null, OptionMapping::getAsString);
+
+        List<RegisteredServer> servers;
+        if (serverFilter != null && !serverFilter.isBlank()) {
+            var found = proxy.getServer(serverFilter);
+            if (found.isEmpty()) {
+                event.reply(messages.format("command.players.unknown-server", "server", serverFilter))
+                        .setEphemeral(true).queue();
+                return;
+            }
+            servers = List.of(found.get());
+        } else {
+            servers = new ArrayList<>(proxy.getAllServers());
+            servers.sort(Comparator.comparing(s -> s.getServerInfo().getName()));
+        }
+
+        var embed = new EmbedBuilder()
+                .setTitle(messages.format("command.players.title"))
+                .setColor(new Color(0x5865F2));
+
+        int total = 0;
+        for (RegisteredServer server : servers) {
+            var players = server.getPlayersConnected();
+            total += players.size();
+            String names = players.isEmpty()
+                    ? messages.format("command.players.empty")
+                    : players.stream().map(p -> p.getUsername()).collect(Collectors.joining(", "));
+            if (names.length() > 1024) names = names.substring(0, 1021) + "…";
+            String fieldName = messages.format("command.players.server-field",
+                    "server", server.getServerInfo().getName(),
+                    "count", String.valueOf(players.size()));
+            embed.addField(fieldName, names, false);
+        }
+
+        embed.setFooter(messages.format("command.players.total", "count", String.valueOf(total)));
+        event.replyEmbeds(embed.build()).queue();
     }
 }

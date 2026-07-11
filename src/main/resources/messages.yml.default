@@ -14,13 +14,16 @@ player:
   join: "🟢 **%player%** зашёл на сервер `%server%`"
   leave: "🔴 **%player%** вышел"
   switch: "↔️ **%player%**: `%from%` → `%to%`"
-  chat: "**%player%**: %message%"
+  # %displayname% включает prefix/suffix из LuckPerms (если установлен), иначе — просто ник
+  # %server% — имя бэкенд-сервера, %player% — чистый ник
+  chat: "**%displayname%** [`%server%`]: %message%"
   command: "📝 `%player%` выполнил /%command%"
 
 discord:
   # Формат сообщения из Discord в MC-чат (рендерится через MiniMessage).
   chat:
-    mc: "[Discord] %player%: %message%"
+    # %role% — высшая роль Discord с цветом (MiniMessage). %player% — отображаемое имя
+    mc: "[Discord | %role%] %player%: %message%"
 
 command:
   list:
@@ -54,3 +57,11 @@ command:
       format-hm: "%hours%ч %minutes%м"
       format-m: "%minutes%м"
       zero: "нет"
+  players:
+    title: "Онлайн-игроки"
+    # Плейсхолдер: %server%, %count%
+    server-field: "%server% (%count%)"
+    empty: "нет игроков"
+    # Плейсхолдер: %count%
+    total: "Всего онлайн: %count%"
+    unknown-server: "Сервер `%server%` не найден"

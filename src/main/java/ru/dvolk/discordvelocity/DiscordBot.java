@@ -96,6 +96,11 @@ public final class DiscordBot {
     private void registerSlashCommands() {
         List<net.dv8tion.jda.api.interactions.commands.build.SlashCommandData> list = new ArrayList<>();
         list.add(Commands.slash("commands", "List all available proxy console commands"));
+        list.add(Commands.slash("players", "Список онлайн-игроков на серверах прокси")
+                .addOptions(new net.dv8tion.jda.api.interactions.commands.build.OptionData(
+                        net.dv8tion.jda.api.interactions.commands.OptionType.STRING,
+                        "server", "Конкретный сервер (по умолчанию — все)", false)
+                        .setAutoComplete(true)));
         if (config.statifyEnabled()) {
             var profile = Commands.slash("time", "Показать наигранное время игрока")
                     .addOption(net.dv8tion.jda.api.interactions.commands.OptionType.STRING,
