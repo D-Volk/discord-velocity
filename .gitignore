@@ -2,6 +2,7 @@
 bin
 build
 .gradle
+.vscode
 
 # files
 velocity-3.5.0-SNAPSHOT-605.jar
