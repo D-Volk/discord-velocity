@@ -4,7 +4,7 @@ plugins {
 }
 
 group = "ru.dvolk"
-version = "0.1.0"
+version = "0.2.1"
 
 java {
     toolchain.languageVersion.set(JavaLanguageVersion.of(21))
@@ -18,6 +18,7 @@ repositories {
 dependencies {
     compileOnly("com.velocitypowered:velocity-api:3.5.0-SNAPSHOT")
     annotationProcessor("com.velocitypowered:velocity-api:3.5.0-SNAPSHOT")
+    compileOnly("net.luckperms:api:5.4")
 
     // log4j-core is bundled with Velocity at runtime — compileOnly only.
     compileOnly("org.apache.logging.log4j:log4j-core:2.22.1")
@@ -27,6 +28,7 @@ dependencies {
         exclude(module = "opus-java")
     }
     implementation("org.yaml:snakeyaml:2.2")
+    implementation("org.mariadb.jdbc:mariadb-java-client:3.4.1")
 }
 
 tasks.withType<JavaCompile>().configureEach {
@@ -65,10 +67,12 @@ tasks.shadowJar {
     relocate("com.fasterxml.jackson", "$shaded.jackson")
     relocate("org.apache.commons.collections4", "$shaded.commons.collections4")
     relocate("org.yaml.snakeyaml", "$shaded.snakeyaml")
+    relocate("org.mariadb.jdbc", "$shaded.mariadb")
     mergeServiceFiles()
     minimize {
         exclude(dependency("net.dv8tion:JDA:.*"))
         exclude(dependency("org.yaml:snakeyaml:.*"))
+        exclude(dependency("org.mariadb.jdbc:mariadb-java-client:.*"))
     }
 }
 
