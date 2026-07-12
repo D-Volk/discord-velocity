@@ -1,6 +1,7 @@
 # dirs
 bin
 build
+gradle
 .gradle
 .vscode
 
