@@ -18,6 +18,9 @@ chat:
   mc-to-discord: true
   # Пересылать сообщения из Discord-чата в MC
   discord-to-mc: true
+  # Серверы, на которых НЕ показывать prefix/suffix из LuckPerms.
+  # Игроки с этих серверов будут отображаться только по нику.
+  no-prefix-servers: []
 
 events:
   # Логировать команды игроков в чат-канал

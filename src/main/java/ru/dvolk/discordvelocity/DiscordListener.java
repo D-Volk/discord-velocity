@@ -327,6 +327,8 @@ public final class DiscordListener extends ListenerAdapter {
             servers.sort(Comparator.comparing(s -> s.getServerInfo().getName()));
         }
 
+        boolean singleServer = serverFilter != null && !serverFilter.isBlank();
+
         var embed = new EmbedBuilder()
                 .setTitle(messages.format("command.players.title"))
                 .setColor(new Color(0x5865F2));
@@ -335,6 +337,7 @@ public final class DiscordListener extends ListenerAdapter {
         for (RegisteredServer server : servers) {
             var players = server.getPlayersConnected();
             total += players.size();
+            if (players.isEmpty() && !singleServer) continue;
             String names = players.isEmpty()
                     ? messages.format("command.players.empty")
                     : players.stream().map(p -> p.getUsername()).collect(Collectors.joining(", "));

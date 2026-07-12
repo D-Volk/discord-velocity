@@ -66,11 +66,17 @@ public final class PlayerEventListener {
         Player player = event.getPlayer();
         String server = player.getCurrentServer()
                 .map(s -> s.getServerInfo().getName()).orElse("?");
-        String prefix = stripFormatting(fetchMeta(player, true));
-        String suffix = stripFormatting(fetchMeta(player, false));
-        String displayName = prefix.isEmpty() && suffix.isEmpty()
-                ? player.getUsername()
-                : prefix + player.getUsername() + suffix;
+        boolean showPrefix = !config.chatNoPrefixServers().contains(server);
+        String prefix = showPrefix ? stripFormatting(fetchMeta(player, true)) : "";
+        String suffix = showPrefix ? stripFormatting(fetchMeta(player, false)) : "";
+        String displayName;
+        if (prefix.isEmpty() && suffix.isEmpty()) {
+            displayName = player.getUsername();
+        } else {
+            String lSep = prefix.isEmpty() || prefix.endsWith(" ") ? "" : " ";
+            String rSep = suffix.isEmpty() || suffix.startsWith(" ") ? "" : " ";
+            displayName = prefix + lSep + player.getUsername() + rSep + suffix;
+        }
         bot.sendChatPlain(messages.format("player.chat",
                 "player", player.getUsername(),
                 "displayname", displayName,
@@ -78,12 +84,15 @@ public final class PlayerEventListener {
                 "message", event.getMessage()));
     }
 
+    @SuppressWarnings({"unchecked", "rawtypes"})
     private static String fetchMeta(Player player, boolean prefix) {
         try {
             var lp = LuckPermsProvider.get();
             var user = lp.getUserManager().getUser(player.getUniqueId());
             if (user == null) return "";
-            var meta = user.getCachedData().getMetaData(QueryOptions.nonContextual());
+            var cm = (net.luckperms.api.context.ContextManager) lp.getContextManager();
+            QueryOptions qo = (QueryOptions) cm.getQueryOptions(player);
+            var meta = user.getCachedData().getMetaData(qo);
             String value = prefix ? meta.getPrefix() : meta.getSuffix();
             return value != null ? value : "";
         } catch (Exception e) {
@@ -94,7 +103,9 @@ public final class PlayerEventListener {
     private static String stripFormatting(String s) {
         if (s == null || s.isEmpty()) return "";
         s = s.replaceAll("<[^>]+>", "");
-        s = s.replaceAll("[§&][0-9a-fk-orA-FK-OR]", "");
+        s = s.replaceAll("[§&]x([§&][0-9a-fA-F]){6}", "");
+        s = s.replaceAll("[§&]#[0-9a-fA-F]{6}", "");
+        s = s.replaceAll("[§&][0-9a-fk-orxA-FK-ORX]", "");
         return s;
     }
 

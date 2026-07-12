@@ -33,6 +33,7 @@ public final class Config {
     private final String consoleChannelId;
     private final boolean chatMcToDiscord;
     private final boolean chatDiscordToMc;
+    private final List<String> chatNoPrefixServers;
     private final boolean consoleBidirectional;
     private final long consoleFlushIntervalMs;
     private final List<String> excludeLoggers;
@@ -63,6 +64,7 @@ public final class Config {
         this.consoleChannelId = Yml.getString(root, "discord.console-channel-id", "").trim();
         this.chatMcToDiscord = Yml.getBool(root, "chat.mc-to-discord", true);
         this.chatDiscordToMc = Yml.getBool(root, "chat.discord-to-mc", true);
+        this.chatNoPrefixServers = Yml.getStringList(root, "chat.no-prefix-servers");
         this.consoleBidirectional = Yml.getBool(root, "console.bidirectional", true);
         this.consoleFlushIntervalMs = Yml.getLong(root, "console.flush-interval-ms", 1500L);
         this.excludeLoggers = Yml.getStringList(root, "console.exclude-loggers");
@@ -177,6 +179,7 @@ public final class Config {
     public String consoleChannelId() { return consoleChannelId; }
     public boolean chatMcToDiscord() { return chatMcToDiscord; }
     public boolean chatDiscordToMc() { return chatDiscordToMc; }
+    public List<String> chatNoPrefixServers() { return chatNoPrefixServers; }
     public boolean consoleBidirectional() { return consoleBidirectional; }
     public long consoleFlushIntervalMs() { return consoleFlushIntervalMs; }
     public List<String> excludeLoggers() { return excludeLoggers; }
