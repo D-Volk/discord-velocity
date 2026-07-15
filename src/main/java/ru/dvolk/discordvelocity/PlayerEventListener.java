@@ -105,6 +105,7 @@ public final class PlayerEventListener {
         s = s.replaceAll("<[^>]+>", "");
         s = s.replaceAll("[§&]x([§&][0-9a-fA-F]){6}", "");
         s = s.replaceAll("[§&]#[0-9a-fA-F]{6}", "");
+        s = s.replaceAll("#[0-9a-fA-F]{6}", "");
         s = s.replaceAll("[§&][0-9a-fk-orxA-FK-ORX]", "");
         return s;
     }
